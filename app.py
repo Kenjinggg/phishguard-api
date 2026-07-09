@@ -2,11 +2,18 @@ import joblib
 import numpy as np
 import json
 import os
+import logging
+import hmac
+import math
 from flask import Flask, request, jsonify
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_cors import CORS
 from config import API_KEY, RATE_LIMIT
+
+# ─── Logging Setup ────────────────────────────────────────────────────────────
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 CORS(app, resources={r"/predict": {"origins": "*"}})
@@ -25,25 +32,38 @@ FEATURES_PATH = os.path.join(os.path.dirname(__file__), 'model', 'continuous_fea
 
 try:
     model = joblib.load(MODEL_PATH)
-    print(f"[OK] Model loaded successfully.")
+    logger.info("Model loaded successfully.")
 except Exception as e:
-    print(f"[ERROR] Failed to load model: {e}")
+    logger.error("Failed to load model: %s", e)
     model = None
 
 try:
     scaler = joblib.load(SCALER_PATH)
-    print(f"[OK] Scaler loaded successfully.")
+    logger.info("Scaler loaded successfully.")
 except Exception as e:
-    print(f"[ERROR] Failed to load scaler: {e}")
+    logger.error("Failed to load scaler: %s", e)
     scaler = None
 
 try:
     with open(FEATURES_PATH, 'r') as f:
         continuous_features = json.load(f)
-    print(f"[OK] Continuous features loaded. Count: {len(continuous_features)}")
+    logger.info("Continuous features loaded. Count: %d", len(continuous_features))
 except Exception as e:
-    print(f"[ERROR] Failed to load continuous features: {e}")
+    logger.error("Failed to load continuous features: %s", e)
     continuous_features = []
+
+# ─── Verify Model Classes ────────────────────────────────────────────────────
+if model is not None:
+    expected_classes = [0, 1]
+    actual_classes = list(model.classes_)
+    if actual_classes != expected_classes:
+        logger.warning(
+            "Model classes mismatch! Expected %s but got %s. "
+            "Class indexing may be incorrect.",
+            expected_classes, actual_classes
+        )
+    else:
+        logger.info("Model classes verified: %s (0=phishing, 1=legitimate)", actual_classes)
 
 # ─── Expected Feature Order ───────────────────────────────────────────────────
 FEATURE_COLUMNS = [
@@ -63,8 +83,8 @@ FEATURE_COLUMNS = [
 
 # ─── Helper: Validate API Key ─────────────────────────────────────────────────
 def is_valid_api_key(req):
-    key = req.headers.get('X-API-Key')
-    return key == API_KEY
+    key = req.headers.get('X-API-Key') or ''
+    return hmac.compare_digest(key, API_KEY)
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
 
@@ -79,7 +99,6 @@ def health_check():
 
 
 @app.route('/predict', methods=['POST'])
-@limiter.limit(RATE_LIMIT)
 def predict():
 
     # 1. Validate API key
@@ -119,34 +138,40 @@ def predict():
     try:
         feature_values = {col: float(data[col]) for col in FEATURE_COLUMNS}
     except (ValueError, TypeError) as e:
+        logger.error("Invalid feature value received: %s", e)
         return jsonify({
-            "error": f"Invalid feature value. All features must be numeric. Detail: {str(e)}"
+            "error": "Invalid feature value. All features must be numeric."
         }), 400
+
+    # 5b. Validate no NaN or Inf values
+    for col, val in feature_values.items():
+        if math.isnan(val) or math.isinf(val):
+            return jsonify({
+                "error": f"Invalid feature value for '{col}': NaN or Inf values are not allowed."
+            }), 400
 
     # 6. Apply scaling to continuous features only
     try:
-        import pandas as pd
-        features_df = pd.DataFrame([feature_values])
-
-        # Scale only the continuous features
-        features_df[continuous_features] = scaler.transform(
-            features_df[continuous_features]
-        )
-
-        features_array = features_df[FEATURE_COLUMNS].values
+        feature_array = np.array([[feature_values[col] for col in FEATURE_COLUMNS]])
+        cont_indices = [FEATURE_COLUMNS.index(f) for f in continuous_features]
+        feature_array[0, cont_indices] = scaler.transform(feature_array[:, cont_indices])[0]
 
     except Exception as e:
+        logger.exception("Feature scaling failed.")
         return jsonify({
-            "error": f"Feature scaling failed. Detail: {str(e)}"
+            "error": "Feature scaling failed."
         }), 500
 
     # 7. Run prediction
     try:
-        prediction = model.predict(features_array)[0]
-        probabilities = model.predict_proba(features_array)[0]
+        prediction = model.predict(feature_array)[0]
+        probabilities = model.predict_proba(feature_array)[0]
 
-        phishing_probability = float(probabilities[0])
-        legitimate_probability = float(probabilities[1])
+        classes = list(model.classes_)
+        phishing_idx = classes.index(0)
+        legitimate_idx = classes.index(1)
+        phishing_probability = float(probabilities[phishing_idx])
+        legitimate_probability = float(probabilities[legitimate_idx])
 
         return jsonify({
             "prediction": int(prediction),
@@ -156,12 +181,17 @@ def predict():
         }), 200
 
     except Exception as e:
+        logger.exception("Prediction failed.")
         return jsonify({
-            "error": f"Prediction failed. Detail: {str(e)}"
+            "error": "Prediction failed."
         }), 500
 
 
 # ─── Error Handlers ───────────────────────────────────────────────────────────
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return jsonify({"error": "Method not allowed."}), 405
 
 @app.errorhandler(429)
 def rate_limit_exceeded(e):
@@ -175,7 +205,14 @@ def not_found(e):
         "error": "Endpoint not found."
     }), 404
 
+@app.errorhandler(500)
+def internal_error(e):
+    return jsonify({"error": "Internal server error."}), 500
+
 
 # ─── Run ──────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)
+    debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    host = os.environ.get('FLASK_HOST', '0.0.0.0')
+    port = int(os.environ.get('FLASK_PORT', '5000'))
+    app.run(debug=debug, host=host, port=port, use_reloader=False)
