@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <span class="logo-icon">🛡️</span>
+                <span class="logo-text">PhishGuard</span>
+            </div>
+            <span class="version">v1.0</span>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="state">
+            <div class="loading-content">
+                <div class="spinner-ring">
+                    <div class="spinner"></div>
+                </div>
+                <p class="loading-text">Analysing page<span class="dots"></span></p>
+                <p class="loading-hint">Checking for threats</p>
+            </div>
+        </div>
+
+        <!-- Result State -->
+        <div id="result" class="state hidden">
+
+            <!-- Scanned URL -->
+            <div class="url-pill">
+                <svg class="url-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+                <span id="scanned-url" class="url-text"></span>
+            </div>
+
+            <!-- Threat Indicator -->
+            <div id="threat-indicator" class="threat-indicator">
+                <div id="threat-glow" class="threat-glow"></div>
+                <div id="threat-icon-circle" class="threat-icon-circle">
+                    <span id="threat-icon"></span>
+                </div>
+                <span id="threat-label" class="threat-label"></span>
+                <p id="threat-subtitle" class="threat-subtitle"></p>
+            </div>
+
+            <!-- Threat Message (Suspicious / High Risk) -->
+            <div id="threat-message" class="threat-message hidden"></div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card" style="animation-delay: 0.1s">
+                    <span class="stat-card-label">Heuristic</span>
+                    <div class="stat-card-value-row">
+                        <span id="heuristic-score" class="stat-card-value">0</span>
+                        <span class="stat-card-max">/ 105</span>
+                    </div>
+                    <div class="stat-bar-track">
+                        <div id="heuristic-bar" class="stat-bar-fill"></div>
+                    </div>
+                </div>
+                <div id="ml-card" class="stat-card" style="animation-delay: 0.2s">
+                    <span class="stat-card-label">ML Model</span>
+                    <div class="stat-card-value-row">
+                        <span id="ml-status" class="stat-card-value ml-value">—</span>
+                    </div>
+                    <div id="ml-bar-track" class="stat-bar-track hidden">
+                        <div id="ml-bar" class="stat-bar-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Triggered Rules -->
+            <div id="rules-section" class="rules-section hidden">
+                <div class="rules-header">
+                    <span class="rules-title">Triggered Rules</span>
+                    <span id="rules-count" class="rules-count">0</span>
+                </div>
+                <ul id="rules-list"></ul>
+            </div>
+
+        </div>
+
+        <!-- No Data State -->
+        <div id="no-data" class="state hidden">
+            <div class="no-data-content">
+                <div class="no-data-icon">🔍</div>
+                <p class="no-data-title">No analysis available</p>
+                <p class="no-data-hint">Navigate to a website to begin scanning.</p>
+            </div>
+        </div>
+
+        <!-- Footer (shown with results) -->
+        <div id="footer" class="footer hidden">
+            <span id="scan-time" class="scan-time"></span>
+        </div>
+
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>
