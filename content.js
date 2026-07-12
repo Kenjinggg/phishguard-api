@@ -13,6 +13,76 @@ const TOP_DOMAINS = [
     'shopee', 'lazada', 'grab', 'airbnb', 'booking', 'expedia'
 ];
 
+// ─── Warning Interstitial (Feature A) ─────────────────────────────────────────
+chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === 'SHOW_WARNING') {
+        injectWarningOverlay(message.data);
+    }
+});
+
+function injectWarningOverlay(analysisResult) {
+    // Avoid double-injection if somehow triggered twice
+    if (document.getElementById('phishguard-overlay-host')) return;
+
+    const host = document.createElement('div');
+    host.id = 'phishguard-overlay-host';
+    host.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;z-index:2147483647;';
+    document.documentElement.appendChild(host);
+
+    const shadow = host.attachShadow({ mode: 'closed' });
+
+    const style = document.createElement('style');
+    style.textContent = `
+        .pg-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #1a0d0d; color: #ffffff;
+            display: flex; align-items: center; justify-content: center;
+            font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+            z-index: 2147483647;
+        }
+        .pg-card {
+            max-width: 480px; width: 90%; background: #2a1414;
+            border: 1px solid #e74c3c; border-radius: 12px;
+            padding: 32px; text-align: center;
+        }
+        .pg-icon { font-size: 48px; margin-bottom: 12px; }
+        .pg-title { font-size: 22px; font-weight: 700; margin: 0 0 12px; }
+        .pg-desc { font-size: 14px; line-height: 1.5; color: #d9c2c2; margin: 0 0 24px; }
+        .pg-buttons { display: flex; gap: 12px; justify-content: center; }
+        .pg-btn { padding: 10px 20px; border-radius: 8px; font-size: 14px;
+            font-weight: 600; cursor: pointer; border: none; }
+        .pg-btn-safe { background: #ffffff; color: #1a0d0d; }
+        .pg-btn-risk { background: transparent; color: #d9c2c2; border: 1px solid #5a3a3a; }
+    `;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'pg-overlay';
+    wrapper.innerHTML = `
+        <div class="pg-card">
+            <div class="pg-icon">🚨</div>
+            <div class="pg-title">PhishGuard Warning</div>
+            <p class="pg-desc">This site shows strong indicators of a phishing attack
+            (score: ${analysisResult.heuristicScore}). We recommend leaving this page
+            and not entering any personal information.</p>
+            <div class="pg-buttons">
+                <button class="pg-btn pg-btn-safe" id="pg-go-back">Go back (safe)</button>
+                <button class="pg-btn pg-btn-risk" id="pg-proceed">Proceed anyway</button>
+            </div>
+        </div>
+    `;
+
+    shadow.appendChild(style);
+    shadow.appendChild(wrapper);
+
+    shadow.getElementById('pg-go-back').addEventListener('click', () => {
+        history.back();
+    });
+
+    shadow.getElementById('pg-proceed').addEventListener('click', () => {
+        host.remove();
+    });
+}
+
 // ─── String Similarity (Levenshtein) ─────────────────────────────────────────
 function computeSimilarity(str1, str2) {
     if (str1 === str2) return 1.0;

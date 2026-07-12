@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
 
@@ -17,6 +19,12 @@
                 <span class="logo-text">PhishGuard</span>
             </div>
             <span class="version">v1.0</span>
+        </div>
+
+        <!-- Tab Switcher -->
+        <div class="tabs">
+            <button id="tab-current" class="tab-btn active">Current Site</button>
+            <button id="tab-history" class="tab-btn">History</button>
         </div>
 
         <!-- Loading State -->
@@ -35,9 +43,10 @@
 
             <!-- Scanned URL -->
             <div class="url-pill">
-                <svg class="url-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                <svg class="url-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                 </svg>
                 <span id="scanned-url" class="url-text"></span>
             </div>
@@ -98,6 +107,16 @@
             </div>
         </div>
 
+        <!-- History State (Feature B) -->
+        <div id="history-view" class="state hidden">
+            <div class="history-header">
+                <span class="history-title">Recent Scans</span>
+                <button id="clear-history-btn" class="clear-history-btn">Clear</button>
+            </div>
+            <ul id="history-list" class="history-list"></ul>
+            <p id="history-empty" class="no-data-hint hidden">No scans recorded yet.</p>
+        </div>
+
         <!-- Footer (shown with results) -->
         <div id="footer" class="footer hidden">
             <span id="scan-time" class="scan-time"></span>
@@ -106,4 +125,5 @@
     </div>
     <script src="popup.js"></script>
 </body>
+
 </html>

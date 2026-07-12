@@ -18,38 +18,79 @@ body {
     padding: 18px 20px;
 }
 
-.state { width: 100%; }
-.hidden { display: none !important; }
+.state {
+    width: 100%;
+}
+
+.hidden {
+    display: none !important;
+}
 
 /* ─── Animations ──────────────────────────────────────────────────────────── */
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes pulseGlow {
-    0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
-    50%      { opacity: 0.7; transform: translate(-50%, -50%) scale(1.08); }
+
+    0%,
+    100% {
+        opacity: 0.4;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: translate(-50%, -50%) scale(1.08);
+    }
 }
 
 @keyframes dotPulse {
-    0%   { content: ''; }
-    25%  { content: '.'; }
-    50%  { content: '..'; }
-    75%  { content: '...'; }
+    0% {
+        content: '';
+    }
+
+    25% {
+        content: '.';
+    }
+
+    50% {
+        content: '..';
+    }
+
+    75% {
+        content: '...';
+    }
 }
 
 @keyframes barFill {
-    from { width: 0; }
+    from {
+        width: 0;
+    }
 }
 
 /* ─── Header ──────────────────────────────────────────────────────────────── */
@@ -91,6 +132,42 @@ body {
     padding: 2px 8px;
     border-radius: 20px;
     letter-spacing: 0.5px;
+}
+
+/* ─── Tab Switcher (Feature B) ────────────────────────────────────────────── */
+.tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 4px;
+}
+
+.tab-btn {
+    flex: 1;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b6b8d;
+    background: transparent;
+    border: none;
+    border-radius: 9px;
+    padding: 8px 0;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    letter-spacing: 0.2px;
+}
+
+.tab-btn:hover {
+    color: #a0a0c0;
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, rgba(124, 131, 253, 0.18), rgba(167, 139, 250, 0.18));
+    color: #c7cbff;
+    box-shadow: 0 0 0 1px rgba(124, 131, 253, 0.25) inset;
 }
 
 /* ─── Loading State ───────────────────────────────────────────────────────── */
@@ -222,36 +299,60 @@ body {
 }
 
 /* Threat level variants */
-.threat-safe .threat-glow { background: rgba(46, 204, 113, 0.35); }
+.threat-safe .threat-glow {
+    background: rgba(46, 204, 113, 0.35);
+}
+
 .threat-safe .threat-icon-circle {
     background: rgba(46, 204, 113, 0.12);
     border: 2px solid rgba(46, 204, 113, 0.3);
     box-shadow: 0 0 24px rgba(46, 204, 113, 0.15);
 }
-.threat-safe .threat-label { color: #2ecc71; }
 
-.threat-suspicious .threat-glow { background: rgba(243, 156, 18, 0.35); }
+.threat-safe .threat-label {
+    color: #2ecc71;
+}
+
+.threat-suspicious .threat-glow {
+    background: rgba(243, 156, 18, 0.35);
+}
+
 .threat-suspicious .threat-icon-circle {
     background: rgba(243, 156, 18, 0.12);
     border: 2px solid rgba(243, 156, 18, 0.3);
     box-shadow: 0 0 24px rgba(243, 156, 18, 0.15);
 }
-.threat-suspicious .threat-label { color: #f39c12; }
 
-.threat-danger .threat-glow { background: rgba(231, 76, 60, 0.4); }
+.threat-suspicious .threat-label {
+    color: #f39c12;
+}
+
+.threat-danger .threat-glow {
+    background: rgba(231, 76, 60, 0.4);
+}
+
 .threat-danger .threat-icon-circle {
     background: rgba(231, 76, 60, 0.12);
     border: 2px solid rgba(231, 76, 60, 0.3);
     box-shadow: 0 0 24px rgba(231, 76, 60, 0.15);
 }
-.threat-danger .threat-label { color: #e74c3c; }
 
-.threat-unknown .threat-glow { background: rgba(149, 165, 166, 0.25); }
+.threat-danger .threat-label {
+    color: #e74c3c;
+}
+
+.threat-unknown .threat-glow {
+    background: rgba(149, 165, 166, 0.25);
+}
+
 .threat-unknown .threat-icon-circle {
     background: rgba(149, 165, 166, 0.1);
     border: 2px solid rgba(149, 165, 166, 0.2);
 }
-.threat-unknown .threat-label { color: #95a5a6; }
+
+.threat-unknown .threat-label {
+    color: #95a5a6;
+}
 
 /* ─── Threat Message ──────────────────────────────────────────────────────── */
 .threat-message {
@@ -415,6 +516,88 @@ body {
 .no-data-hint {
     font-size: 11px;
     color: #5a5a76;
+    text-align: center;
+}
+
+/* ─── History View (Feature B) ────────────────────────────────────────────── */
+#history-view {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.history-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: #6b6b8d;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.clear-history-btn {
+    font-family: inherit;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #8e8ea8;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.clear-history-btn:hover {
+    background: rgba(231, 76, 60, 0.12);
+    color: #e74c3c;
+    border-color: rgba(231, 76, 60, 0.25);
+}
+
+.history-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    animation: fadeInUp 0.3s ease-out both;
+}
+
+.history-icon {
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.history-domain {
+    font-size: 12px;
+    font-weight: 500;
+    color: #c0c0d8;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-time {
+    font-size: 10.5px;
+    color: #5a5a76;
+    font-weight: 500;
+    flex-shrink: 0;
 }
 
 /* ─── Footer ──────────────────────────────────────────────────────────────── */

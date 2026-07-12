@@ -8,6 +8,8 @@ const tabResults = {};
 const tabStatus = {}; // tracks whether analysis is in progress
 const urlCache = {};  // #4.4: URL-based result caching
 
+const MAX_HISTORY_ENTRIES = 30; // Feature B: cap on stored scan history entries
+
 // ─── Combined Scoring Logic (#2.3 — moved from content.js with fixes) ────────
 function computeFinalThreatLevel(heuristicLevel, heuristicScore, phishingProbability) {
     // Heuristic scores below 40 are always Low Risk, ML is not consulted
@@ -36,6 +38,47 @@ function cleanupCache() {
     }
 }
 
+// ─── Scan History (Feature B) ────────────────────────────────────────────────
+function saveToHistory(analysisResult) {
+    chrome.storage.local.get(['scanHistory'], (data) => {
+        const history = data.scanHistory || [];
+
+        let hostname = analysisResult.url;
+        try {
+            hostname = new URL(analysisResult.url).hostname;
+        } catch (e) {
+            // keep raw url as fallback if it somehow isn't a valid URL
+        }
+
+        history.unshift({
+            url: analysisResult.url,
+            hostname: hostname,
+            finalThreatLevel: analysisResult.finalThreatLevel,
+            heuristicScore: analysisResult.heuristicScore,
+            timestamp: analysisResult.timestamp
+        });
+
+        // Cap at MAX_HISTORY_ENTRIES, dropping oldest entries first
+        const trimmed = history.slice(0, MAX_HISTORY_ENTRIES);
+
+        chrome.storage.local.set({ scanHistory: trimmed });
+    });
+}
+
+// ─── Push warning to content script for High Risk sites (Feature A) ──────────
+function notifyTabIfHighRisk(tabId, analysisResult) {
+    if (analysisResult.finalThreatLevel === 'High Risk') {
+        chrome.tabs.sendMessage(tabId, {
+            type: 'SHOW_WARNING',
+            data: analysisResult
+        }, () => {
+            if (chrome.runtime.lastError) {
+                console.warn('PhishGuard: Could not deliver warning to tab.', chrome.runtime.lastError.message);
+            }
+        });
+    }
+}
+
 // Listen for messages from content script and popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
@@ -50,6 +93,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             tabResults[tabId] = cached.result;
             tabStatus[tabId] = 'complete';
             updateBadge(tabId, cached.result.finalThreatLevel);
+            notifyTabIfHighRisk(tabId, cached.result);
             sendResponse({ status: 'ok' });
             return;
         }
@@ -96,6 +140,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 // #4.4: Cache the result
                 urlCache[url] = { result: analysisResult, timestamp: Date.now() };
+                saveToHistory(analysisResult);
+                notifyTabIfHighRisk(tabId, analysisResult);
 
                 sendResponse({ status: 'ok' });
             })
@@ -127,6 +173,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 // Cache even heuristic-only results to avoid repeated failed API calls
                 urlCache[url] = { result: analysisResult, timestamp: Date.now() };
+                saveToHistory(analysisResult);
+                notifyTabIfHighRisk(tabId, analysisResult);
 
                 sendResponse({ status: 'ok' });
             });
@@ -172,6 +220,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             const result = tabResults[tabId] || null;
             const status = tabStatus[tabId] || 'idle';
             sendResponse({ result: result, status: status });
+        });
+        return true;
+    }
+
+    // ── Feature B: Popup requests for scan history ─────────────────────────
+    if (message.type === 'GET_HISTORY') {
+        chrome.storage.local.get(['scanHistory'], (data) => {
+            sendResponse({ history: data.scanHistory || [] });
+        });
+        return true;
+    }
+
+    if (message.type === 'CLEAR_HISTORY') {
+        chrome.storage.local.set({ scanHistory: [] }, () => {
+            sendResponse({ status: 'ok' });
         });
         return true;
     }
