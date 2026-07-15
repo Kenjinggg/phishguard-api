@@ -114,6 +114,29 @@ function computeSimilarity(str1, str2) {
     return 1 - (distance / maxLen);
 }
 
+// ─── IDN Homograph / Punycode Detection ──────────────────────────────────────
+function detectHomographAttack(domain) {
+    // Punycode-encoded domains are a strong signal — browsers convert
+    // internationalized domain names starting with "xn--" when they
+    // contain non-ASCII characters.
+    const isPunycode = domain.split('.').some(label => label.startsWith('xn--'));
+
+    // Mixed-script detection: legitimate domains are almost always
+    // single-script (all Latin). A domain mixing Latin with Cyrillic
+    // or Greek look-alike characters is a classic homograph spoofing pattern.
+    const hasCyrillic = /[\u0400-\u04FF]/.test(domain);
+    const hasGreek = /[\u0370-\u03FF]/.test(domain);
+    const hasLatin = /[a-zA-Z]/.test(domain);
+    const isMixedScript = hasLatin && (hasCyrillic || hasGreek);
+
+    return {
+        isPunycode,
+        isMixedScript,
+        isSuspicious: isPunycode || isMixedScript
+    };
+}
+
+
 // ─── URL Feature Extraction ───────────────────────────────────────────────────
 function extractURLFeatures(url) {
     const urlObj = new URL(url);
@@ -395,6 +418,15 @@ function computeHeuristicScore(urlFeatures, url, domain) {
     if (domain.includes('-')) {
         score += 15;
         triggeredRules.push('Hyphenated domain detected (+15)');
+    }
+
+    const homographResult = detectHomographAttack(domain);
+    if (homographResult.isSuspicious) {
+        score += 20;
+        const reason = homographResult.isPunycode
+            ? 'Punycode-encoded domain detected, possible IDN homograph attack (+20)'
+            : 'Mixed-script domain detected, possible homograph spoofing (+20)';
+        triggeredRules.push(reason);
     }
 
     if (urlFeatures.URLLength > 75) {
