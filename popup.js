@@ -227,6 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 mlStatusEl.textContent = 'Uncertain';
                 mlStatusEl.style.color = '#f39c12';
                 mlBar.style.background = 'linear-gradient(90deg, #f39c12, #e67e22)';
+            } else if (data.mlPhishingProbability < 0.95) {
+                mlStatusEl.textContent = 'Suspicious';
+                mlStatusEl.style.color = '#e67e22';
+                mlBar.style.background = 'linear-gradient(90deg, #e67e22, #d35400)';
             } else {
                 mlStatusEl.textContent = 'Likely Phishing';
                 mlStatusEl.style.color = '#e74c3c';
