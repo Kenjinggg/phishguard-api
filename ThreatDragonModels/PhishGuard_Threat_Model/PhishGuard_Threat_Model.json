@@ -1224,6 +1224,7 @@
             },
             "visible": true,
             "shape": "process",
+            "zIndex": 11,
             "ports": {
               "groups": {
                 "top": {
@@ -1307,7 +1308,6 @@
               ]
             },
             "id": "3b759ece-2fa7-4054-a277-283b6eba5435",
-            "zIndex": 11,
             "data": {
               "type": "tm.Process",
               "name": "On-device\nEdge model",
@@ -1328,6 +1328,6 @@
     ],
     "diagramTop": 1,
     "reviewer": "",
-    "threatTop": 0
+    "threatTop": 2
   }
 }
