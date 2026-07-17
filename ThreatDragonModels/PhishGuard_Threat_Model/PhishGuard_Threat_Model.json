@@ -19,8 +19,8 @@
         "cells": [
           {
             "position": {
-              "x": 450,
-              "y": 50
+              "x": 470,
+              "y": 30
             },
             "size": {
               "width": 420,
@@ -201,7 +201,38 @@
               "reasonOutOfScope": "",
               "hasOpenThreats": false,
               "providesAuthentication": false,
-              "threats": []
+              "threats": [
+                {
+                  "id": "02b6a5c8-1669-4fda-9a9e-88b71d3ed367",
+                  "title": "User identity not verified",
+                  "status": "Mitigated",
+                  "severity": "TBD",
+                  "type": "Spoofing",
+                  "description": "The extension does not authenticate end users. Any person using the browser can access scan results and history.",
+                  "mitigation": "The extension operates locally within the user's browser session. Browser-level authentication (OS login) provides implicit identity.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 12,
+                  "score": ""
+                },
+                {
+                  "id": "1d8ef6c9-9b0f-4693-aafa-41d755adbc09",
+                  "title": "No audit trail of user actions",
+                  "status": "Mitigated",
+                  "severity": "TBD",
+                  "type": "Repudiation",
+                  "description": "User can deny having visited a flagged site or dismissed a warning interstitial.",
+                  "mitigation": "Scan history stores timestamped records of all scanned URLs. Warning dismissals are not logged.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 13,
+                  "score": ""
+                }
+              ],
+              "threatFrequency": {
+                "spoofing": 1,
+                "repudiation": 1
+              }
             }
           },
           {
@@ -318,7 +349,38 @@
               "reasonOutOfScope": "",
               "hasOpenThreats": false,
               "providesAuthentication": false,
-              "threats": []
+              "threats": [
+                {
+                  "id": "9ed7d41d-80a8-427d-bcbd-fc5cf2733b68",
+                  "title": "Phishing site spoofs legitimate domain",
+                  "status": "Mitigated",
+                  "severity": "TBD",
+                  "type": "Spoofing",
+                  "description": "Attacker creates a domain visually similar to a trusted brand for example paypаl.com using Cyrillic 'а' to deceive users.",
+                  "mitigation": "IDN homograph detection in content.js detects punycode-encoded and mixed-script domains, adding +20 to heuristic score.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 14,
+                  "score": ""
+                },
+                {
+                  "id": "de074976-4c6e-44cd-860b-09f0c143d9a1",
+                  "title": "Malicious site denies intent",
+                  "status": "Accepted",
+                  "severity": "TBD",
+                  "type": "Repudiation",
+                  "description": "Attacker denies the site was designed for phishing.",
+                  "mitigation": "Out of scope. PhishGuard is a detection tool, not a forensic evidence system. Scan history preserves the detection record.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 15,
+                  "score": ""
+                }
+              ],
+              "threatFrequency": {
+                "spoofing": 1,
+                "repudiation": 1
+              }
             }
           },
           {
@@ -1328,6 +1390,6 @@
     ],
     "diagramTop": 1,
     "reviewer": "",
-    "threatTop": 2
+    "threatTop": 15
   }
 }
