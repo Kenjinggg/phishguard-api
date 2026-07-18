@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-CORS(app, resources={r"/predict": {"origins": "*"}})
+app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024  # 1MB cap, well above a real feature payload
+CORS(app, resources={r"/predict": {"origins": []}})
 
 # ─── Rate Limiting ────────────────────────────────────────────────────────────
 limiter = Limiter(
@@ -114,6 +115,11 @@ def predict():
         }), 400
 
     data = request.get_json()
+
+    if not isinstance(data, dict):
+        return jsonify({
+            "error": "Request body must be a JSON object."
+        }), 400
 
     # 3. Validate all required features are present
     missing_features = [f for f in FEATURE_COLUMNS if f not in data]
